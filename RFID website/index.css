@@ -1,0 +1,17 @@
+body{
+    background-image: url("rfid.jpg");
+}
+div{
+border: 1 px solid gray;
+padding: 30px;
+background-color: dimgray;
+
+}
+h1{
+text-align: center;
+text-transform: uppercase;
+font-size:xx-large;
+font-family: 'Times New Roman', Times, serif;
+color:white;
+background-color:dimgray;
+}
