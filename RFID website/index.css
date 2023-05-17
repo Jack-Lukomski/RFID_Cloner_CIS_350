@@ -4,7 +4,7 @@ body{
 div{
 border: 1 px solid gray;
 padding: 30px;
-background-color: dimgray;
+background-color: white;
 
 }
 h1{
@@ -14,4 +14,12 @@ font-size:xx-large;
 font-family: 'Times New Roman', Times, serif;
 color:white;
 background-color:dimgray;
+}
+p{
+    text-align: center;
+    text-transform: uppercase;
+    font-size:large;
+}
+form{
+    text-align: center;
 }
