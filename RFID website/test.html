@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<head>
+<body>
+
+<p id="num" ></p>
+<button onclick="bluetoothTest()" >click me!</button>
+<script>
+
+function bluetoothTest(){
+    navigator.bluetooth.requestDevice({
+        acceptAllDevices: true,
+        optionalServices: ['battery_service'] // Required to access service later.
+      })
+      .then(device => { /* … */ })
+      .catch(error => { console.error(error); 
+                        window.alert("No bluetooth found!");
+      });
+}
+
+</script>
+
+</body>
+</head>

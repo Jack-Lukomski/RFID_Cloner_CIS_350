@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<head>
+    <!--link .css file for formatting-->
+    <link rel="stylesheet" href="index.css">
+    <!--link javascript file-->
+    <script src = "index.js"></script>
+<body>
+<!--div box to hold content-->
+<div>
+    <!--title-->
+    <h1>RFID Cloner</h1>
+    <!--a variable meant to hold RFID card ID-->
+    <p id="RFID_Badge_number" >waiting for RFID value...</p>
+    <p id="bluetooth_device_name">no device found....</p>
+    
+    
+    <button id="connect_button"  onclick="test()" >Find Bluetooth Devices!</button>
+    
+    <form>
+        <!--when button clicked find bluetooth devices-->
+        
+        <button id="write_RFID_button">Write Bluetooth</button>
+        <button id="save_RFID_tags">save RFID tags to database</button>
+        <p>&emsp;</p>
+        <label for="RFID_tags" >RFID tags</label>
+        <select name = "RFID_tags" id = "RFID_tags">
+            <option value="FBI">FBI</option>"
+            <option value="CIA">CIA</option>"
+            <option value="IRS">IRS</option>"
+            <option value="NSA">NSA</option>"
+            <option value="Department of cheeseburgers">Department of cheeseburgers</option>"
+        </select>
+        <button id = "write_RFID_button">write to badge!</button>
+    </form>
+
+    
+    
+     
+</div>
+
+</body>
+</head>
