@@ -1,10 +1,4 @@
 
-
-
-
-
-
-
 //THIS IS WHAT IS WORKING
 /*
 How it works:
@@ -61,5 +55,54 @@ async function test(){
     
 }
 
+/**
+ * Function to store an RFID code in local storage.
+ * Attempts to handle errors.
+ * @param {string} code - The RFID code to store.
+ */
+function storeRFIDCode(code) {
+    let existingCodes;
 
+    try {
 
+        existingCodes = localStorage.getItem('rfidCodes')
+        existingCodes = existingCodes ? JSON.parse(existingCodes) : [];
+
+    } catch (error) {
+
+        existingCodes = []
+    }
+
+    existingCodes.push(code);
+
+    try {
+
+        localStorage.setItem('rfidCodes', JSON.stringify(existingCodes));
+    } catch (error) {
+
+        console.error('Failed to save RFID code: ', error);
+    }
+}
+
+/**
+ * Function to retrieve all stored RFID codes from local storage.
+ * Attempts to handles errors.
+ * @returns {Array} - An array of stored RFID codes
+ */
+function retrieveAllCodes() {
+    let existingCodes;
+
+    try {
+        if (typeof localStorage !== 'undefined') {
+            existingCodes = localStorage.getItem('rfidCodes');
+            existingCodes = existingCodes ? JSON.parse(existingCodes) : [];
+        } else {
+            existingCodes = []
+        }
+    } catch (error) {
+        existingCodes = [];
+        console.error('Failed to retrieve RFID codes: ', error);
+    }
+
+    return existingCodes
+}
