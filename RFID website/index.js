@@ -1,10 +1,4 @@
 
-
-
-
-
-
-
 //THIS IS WHAT IS WORKING
 /*
 How it works:
@@ -57,9 +51,48 @@ async function test(){
     }
     
     console.log("done");
-
-    
 }
 
+/**
+ * NEEDS TESTING!!!
+ * 
+ * This function is used to store an RFID code in the web storage (localStorage).
+ * It checks if web storage is supported and stores the RFID code if supported, otherwiese
+ * logs an error message.
+ * 
+ * @param {string} rfidCode - The RFID code to store
+ */
+function storeRFIDCode(rfidCode) {
+    if (typeof(Storage) !== "undefined") {
+        localStorage.setItem("rfidCode", rfidCode);
+        console.log("RFID code stored successfully.");
+    } else {
+        console.log("Web Storage is not supported.");
+    }
+}
 
-
+/**
+ * NEEDS TESTING!!!
+ * 
+ * This function is used to retrieve all stored RFID codes from the web storage,
+ * (localStorage).
+ * It checks if web storage is supported, retrieves the stored RFID coes if available, and
+ * returns them as an array.
+ * If no RFID codes are found, it logs a message and returns an empty array.
+ * 
+ * @returns {Array} - An array containing all stored RFID codes.
+ */
+function getRFIDCodes() {
+    if (typeof(Storage) !== "undefined") {
+        var rfidCodes = localStorage.getItem("rfidCodes");
+        if (rfidCodes) {
+            return JSON.parse(rfidCodes);
+        } else {
+            console.log("No RFID codes found in storage.");
+            return [];
+        }
+    } else {
+        console.log("Web Storage is not supported.");
+        return [];
+    }
+}
