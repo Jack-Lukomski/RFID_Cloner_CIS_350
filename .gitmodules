@@ -1,0 +1,3 @@
+[submodule "ESP32_Embedded_RFID_Code/RFID_ESP32"]
+	path = ESP32_Embedded_RFID_Code/RFID_ESP32
+	url = git@github.com:Jack-Lukomski/RFID_ESP32.git
