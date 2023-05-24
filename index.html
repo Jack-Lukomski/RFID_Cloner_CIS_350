@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<head>
+    <!--link .css file for formatting-->
+    <link rel="stylesheet" href="index.css">
+    <!--link javascript file-->
+    <script src = "index.js"></script>
+<body>
+<!--div box to hold content-->
+<div>
+    <!--title-->
+    <h1>RFID Cloner</h1>
+    <!--a variable meant to hold RFID card ID-->
+    <p id="RFID_Badge_number" >waiting for RFID value...</p>
+    <p id="bluetooth_device_name">no device found....</p>
+        
+    <button id="connect_button"  onclick="connect_to_cloner()" >Find Bluetooth Devices!</button>
+    <button id="write_RFID_button" onclick = "receive_data_from_cloner()">Read Cloner</button>
+    <button id="send_to_cloner" onclick="send_data_to_cloner()">Send</button>
+    <input type = "text" id = "text_box" value="aa aa aa aa">
+    <label for="RFID_tags" >RFID tags</label>
+    
+   
+    
+     
+</div>
+
+</body>
+</head>
