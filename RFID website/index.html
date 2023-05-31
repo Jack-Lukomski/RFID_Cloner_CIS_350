@@ -15,6 +15,10 @@
         
     <button id="connect_button"  onclick="connect_to_cloner()" >Find Bluetooth Devices!</button>
     <button id="write_RFID_button" onclick = "receive_data_from_cloner()">Read Cloner</button>
+    
+    <button id="command_scan_RFID" onclick="cloner_command_scan()">Scan Badge</button>
+    <button id="clear_data_button" onclick="clear_saved_data()">clear saved data</button>
+    
     <button id="send_to_cloner" onclick="send_data_to_cloner()">Send</button>
     <input type = "text" id = "text_box" value="aa aa aa aa">
     <label for="RFID_tags" >RFID tags</label>
