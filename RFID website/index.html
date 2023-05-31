@@ -4,29 +4,31 @@
     <link rel="stylesheet" href="index.css">
     <!--link javascript file-->
     <script src = "index.js"></script>
-<body>
+<body onload = "update_badge_list()">
 <!--div box to hold content-->
 <div>
     <!--title-->
     <h1>RFID Cloner</h1>
-    <!--a variable meant to hold RFID card ID-->
-    <p id="RFID_Badge_number" >waiting for RFID value...</p>
-    <p id="bluetooth_device_name">no device found....</p>
-        
-    <button id="connect_button"  onclick="connect_to_cloner()" >Find Bluetooth Devices!</button>
-    <button id="write_RFID_button" onclick = "receive_data_from_cloner()">Read Cloner</button>
     
-    <button id="command_scan_RFID" onclick="cloner_command_scan()">Scan Badge</button>
-    <button id="clear_data_button" onclick="clear_saved_data()">clear saved data</button>
+    
+    <!--a variable meant to hold RFID card ID-->
+    <button id="connect_button"  onclick="connect_to_cloner()" >Find Bluetooth Devices!</button><br>
+
+    <p id="RFID_Badge_number" >waiting for RFID value...</p>
+    <p id="bluetooth_device_name">no device found....</p><br><br>
     
     <button id="send_to_cloner" onclick="send_data_to_cloner()">Send</button>
     <input type = "text" id = "text_box" value="aa aa aa aa">
-    <label for="RFID_tags" >RFID tags</label>
     
-   
-    
-     
+    <label for="Badge Number" >RFID tags</label>
+    <select name = "badges_list" id = "badges_list" onchange="selection_to_text_box()"></select> <br><br>
+
+    <button id="write_RFID_button" onclick = "receive_data_from_cloner()">Read Cloner</button>
+    <button id="command_scan_RFID" onclick="cloner_command_scan()">Scan Badge</button>
+    <button id="clear_data_button" onclick="clear_saved_data()">clear saved data</button>
+        
 </div>
 
 </body>
 </head>
+
