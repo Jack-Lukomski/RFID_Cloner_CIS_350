@@ -12,7 +12,8 @@
     
     
     <!--a variable meant to hold RFID card ID-->
-    <button id="connect_button"  onclick="connect_to_cloner()" >Find Bluetooth Devices!</button><br>
+    <button id="connect_button"  onclick="connect_to_cloner()" >Find Bluetooth Devices!</button><br><br>
+    <button id="cloner_turn_off/on_button" onclick = "cloner_turn_off()">Turn Off/On Cloner</button><br>
 
     <p id="RFID_Badge_number" >waiting for RFID value...</p>
     <p id="bluetooth_device_name">no device found....</p><br><br>
@@ -23,8 +24,8 @@
     <label for="Badge Number" >RFID tags</label>
     <select name = "badges_list" id = "badges_list" onchange="selection_to_text_box()"></select> <br><br>
 
-    <button id="write_RFID_button" onclick = "receive_data_from_cloner()">Read Cloner</button>
-    <button id="command_scan_RFID" onclick="cloner_command_scan()">Scan Badge</button>
+    
+    <button id="command_scan_RFID_button" onclick="cloner_command_scan()">Scan Badge</button>
     <button id="clear_data_button" onclick="clear_saved_data()">clear saved data</button>
         
 </div>

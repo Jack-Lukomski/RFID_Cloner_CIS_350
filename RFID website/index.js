@@ -14,6 +14,7 @@ let service;
 let write_badge_to_cloner_ID = 0x0001;
 let receive_badge_from_cloner_ID = 0x0002;
 let scan_badge_command = 0x0003;
+let turn_off_device_command = 0x0004;
 //encoder and decoder for converting byte data into strings
 decoder = new TextDecoder();
 encoder = new TextEncoder();
@@ -21,6 +22,7 @@ encoder = new TextEncoder();
 let cloner_transmit_characteristic;
 let cloner_receive_characteristic;
 let cloner_scan_command_characteristic;
+let cloner_turn_off_characteristic;
 //variables for sending and receiving data
 let cloner_to_web_data;
 let web_to_cloner_data;
@@ -52,6 +54,7 @@ async function connect_to_cloner() {
     cloner_transmit_characteristic = await service.getCharacteristic(receive_badge_from_cloner_ID);
     cloner_receive_characteristic = await service.getCharacteristic(write_badge_to_cloner_ID);
     cloner_scan_command_characteristic = await service.getCharacteristic(scan_badge_command);
+    cloner_turn_off_characteristic = await service.getCharacteristic(turn_off_device_command);
     //publish device name to website
     document.getElementById("bluetooth_device_name").innerHTML = cloner.name;
     //start notification services for cloner
@@ -152,6 +155,14 @@ async function cloner_command_scan() {
         await cloner_scan_command_characteristic.writeValue(data);
     }
     catch (error) { }
+}
+
+
+
+//function to write to the on off characteristic. turns off device 
+async function cloner_turn_off(){
+    let data =  await encoder.encode("turnoffnow_");
+    await cloner_turn_off_characteristic.writeValue(data);
 }
 
 
