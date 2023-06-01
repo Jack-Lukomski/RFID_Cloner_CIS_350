@@ -98,7 +98,7 @@ async function connectToCloner() {
   // device find
   cloner = await navigator.bluetooth.requestDevice({
     acceptAllDevices: true,
-    optionalServices: ['battery_service'];
+    optionalServices: ['battery_service'],
   });
 
   // connect to cloner peripheral
@@ -170,7 +170,7 @@ async function setupRFIDnotifications() {
         } catch (DOMException) {
           console.log('notification failure.');
         }
-      }
+      },
     );
   }
 }
