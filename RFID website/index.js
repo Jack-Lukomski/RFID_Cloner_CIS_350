@@ -91,12 +91,6 @@ let cloner_turn_off_characteristic;
  */
 let cloner_to_web_data;
 
-/**
- * The data received from the web application and sent to the cloner device.
- * @type {DataView}
- */
-let web_to_cloner_data;
-
 
 
 //FUNCTIONS***********************************************************************************
@@ -150,7 +144,7 @@ async function send_data_to_cloner() {
         storeRFIDCode(val);
         
         //convert to byte array
-        byte_buff = await encoder.encode(val);
+        let byte_buff = await encoder.encode(val);
         await cloner_receive_characteristic.writeValue(byte_buff);
         console.log(byte_buff);//test
     }
@@ -192,7 +186,9 @@ async function setup_RFID_notifications() {
         try {
             await cloner_transmit_characteristic.startNotifications();
         }
-        catch (error) { }
+        catch (error) { 
+            console.log("notifications not started!");
+        }
 
         //add event listener to characteristic, then if notification change val
         cloner_transmit_characteristic.addEventListener(
@@ -202,17 +198,19 @@ async function setup_RFID_notifications() {
             async (event_handler) => {
 
                 try {
-                    val = event_handler.target.value;
+                    let val = event_handler.target.value;
                     val = decoder.decode(val);
                     document.getElementById("RFID_Badge_number").innerHTML = val;
                     //store UID to JSON data
                     storeRFIDCode(val);
                     
                 }
-                catch (DOMException) { }
+                catch (DOMException) {
+                    console.log("notification failure.");
+                 }
 
                 console.log(localStorage.getItem('rfidCodes'));//TEST
-                console.log(val);
+                
 
             }
         )
@@ -227,10 +225,12 @@ async function cloner_command_scan() {
 
     try {
         //Cloner waits for data to arrive on this characteristic. Doesnt matter what the data is, just that it arrives.
-        let data = await encoder.encode("writetoRFID_");
+        let data = encoder.encode("writetoRFID_");
         await cloner_scan_command_characteristic.writeValue(data);
     }
-    catch (error) { }
+    catch (error) { 
+        console.log("cloner command scan characteristic unreachable.");
+    }
 }
 
 /**
@@ -347,7 +347,7 @@ function fill_badge_list(badges,select_list){
  * @returns {void}
  */
 function clear_badge_list(badge_list){
-    len = badge_list.options.length-1;
+    let len = badge_list.options.length-1;
     //loop through drop down list and clear it
     for(let i = len; i>=0;i--){
         badge_list.remove(i);
