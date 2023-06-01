@@ -1,5 +1,6 @@
 {
   "devDependencies": {
-    "@types/web-bluetooth": "^0.0.17"
+    "@types/web-bluetooth": "^0.0.17",
+    "eslint": "^8.41.0"
   }
 }

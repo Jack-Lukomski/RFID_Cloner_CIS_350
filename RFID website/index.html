@@ -4,29 +4,34 @@
     <link rel="stylesheet" href="index.css">
     <!--link javascript file-->
     <script src = "index.js"></script>
-<body onload = "update_badge_list()">
+<!--on start load saved badges to drop down list-->    
+<body onload = "updateBadgeList()">
 <!--div box to hold content-->
 <div>
     <!--title-->
     <h1>RFID Cloner</h1>
     
     
-    <!--a variable meant to hold RFID card ID-->
-    <button id="connect_button"  onclick="connect_to_cloner()" >Find Bluetooth Devices!</button><br><br>
-    <button id="cloner_turn_off/on_button" onclick = "cloner_turn_off()">Turn Off/On Cloner</button><br>
-
+    <!--connect button calls connect_to_cloner function-->
+    <button id="connect_button"  onclick="connectToCloner()" >Find Bluetooth Devices!</button><br><br>
+    <!--turn on and off button to turn device on and off-->
+    <button id="cloner_turn_off/on_button" onclick = "clonerTurnOff()">Turn Off/On Cloner</button><br>
+    <!--RFID badge number to be displayed-->
     <p id="RFID_Badge_number" >waiting for RFID value...</p>
+    <!--bluetooth device name to be displayed-->
     <p id="bluetooth_device_name">no device found....</p><br><br>
-    
-    <button id="send_to_cloner" onclick="send_data_to_cloner()">Send</button>
+    <!--send to cloner button sends badge to cloner-->
+    <button id="send_to_cloner" onclick="sendDataToCloner()">Send</button>
+    <!--text box to take input-->
     <input type = "text" id = "text_box" value="aa aa aa aa">
-    
+    <!--label for drop down list-->
     <label for="Badge Number" >RFID tags</label>
-    <select name = "badges_list" id = "badges_list" onchange="selection_to_text_box()"></select> <br><br>
-
-    
-    <button id="command_scan_RFID_button" onclick="cloner_command_scan()">Scan Badge</button>
-    <button id="clear_data_button" onclick="clear_saved_data()">clear saved data</button>
+    <!--drop down list for saved badge numbers-->
+    <select name = "badges_list" id = "badges_list" onchange="selectionToTextBox()"></select> <br><br>
+    <!--command button to command cloner to scan badge-->
+    <button id="command_scan_RFID_button" onclick="clonerCommandScan()">Scan Badge</button>
+    <!--clear data button clears saved memory in website-->
+    <button id="clear_data_button" onclick="clearSavedData()">clear saved data</button>
         
 </div>
 
