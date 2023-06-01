@@ -94,7 +94,7 @@ let clonerTurnOffCharacteristic;
  * Connects to the cloner device via Bluetooth.
  * @returns {Promise<void>} A promise that resolves when the connection is established.
  */
-async function connectToCloner () {
+async function connectToCloner() {
   // device find
   cloner = await navigator.bluetooth.requestDevice({
     acceptAllDevices: true,
@@ -126,7 +126,7 @@ async function connectToCloner () {
  * Sends badge number to the cloner via button push.
  * @returns {Promise<void>} A promise that resolves when the data is sent to the cloncer.
  */
-async function sendDataToCloner () {
+async function sendDataToCloner() {
   try {
     // get text box content
     const val = document.getElementById('text_box').value;
@@ -145,7 +145,7 @@ async function sendDataToCloner () {
  * Sets up RFID cloner notification.
  * @returns {Promise<void>} A promise that resolves when the RFID cloner notification is set up.
  */
-async function setupRFIDnotifications () {
+async function setupRFIDnotifications() {
   if (clonerTransmitCharacteristic.properties.notify) {
     // get updated characteristic if notification received
     try {
@@ -169,10 +169,8 @@ async function setupRFIDnotifications () {
         } catch (DOMException) {
           console.log('notification failure.');
         }
-
-        console.log(localStorage.getItem('rfidCodes'));
       }
-    )
+    );
   }
 }
 
@@ -180,9 +178,10 @@ async function setupRFIDnotifications () {
  * Sends a command to the cloner to scan a badge.
  * @returns {Promise<void>} A promise that resolves when the command is sent to the cloner.
  */
-async function clonerCommandScan () {
+async function clonerCommandScan() {
   try {
-    // Cloner waits for data to arrive on this characteristic. Doesnt matter what the data is, just that it arrives.
+    // Cloner waits for data to arrive on this characteristic. 
+    // Doesnt matter what the data is, just that it arrives.
     const data = encoder.encode('***********');
     await clonerScanCommandCharacteristic.writeValue(data);
   } catch (error) {
@@ -194,7 +193,7 @@ async function clonerCommandScan () {
  * Sends a command to turn off the cloner device.
  * @returns {Promise<void>} A promise that resolves when the command is sent to turn off the cloner.
  */
-async function clonerTurnOff () {
+async function clonerTurnOff() {
   const data = await encoder.encode('***********');
   await clonerTurnOffCharacteristic.writeValue(data);
 }
@@ -203,9 +202,8 @@ async function clonerTurnOff () {
  * Clears JSON data from the web browser.
  * @returns {void}
  */
-function clearSavedData () {
+function clearSavedData() {
   localStorage.removeItem('rfidCodes');
-  console.log('cleared');
   // clear drop down list 
   updateBadgeList()
 }
@@ -216,7 +214,7 @@ function clearSavedData () {
  * @param {string} code - The RFID code to store.
  * @returns {void}
  */
-function storeRFIDCode (code) {
+function storeRFIDCode(code) {
   let existingCodes;
 
   // retreive badge numbers from storage and put into array
@@ -224,7 +222,7 @@ function storeRFIDCode (code) {
     existingCodes = localStorage.getItem('rfidCodes')
     existingCodes = existingCodes ? JSON.parse(existingCodes) : [];
   } catch (error) {
-    existingCodes = []
+    existingCodes = [];
   }
 
   // if new code not in list, add and save
@@ -240,9 +238,6 @@ function storeRFIDCode (code) {
     }
     // update drop down list
     updateBadgeList();
-  } else {
-    const message = "UID already in list!";
-    console.log(message);
   }
 }
 
@@ -251,7 +246,7 @@ function storeRFIDCode (code) {
  * Attempts to handles errors.
  * @returns {Array<string>} An array of stored RFID codes
  */
-function retrieveAllCodes () {
+function retrieveAllCodes() {
   let existingCodes;
 
   try {
@@ -266,7 +261,7 @@ function retrieveAllCodes () {
     console.error('Failed to retrieve RFID codes: ', error);
   }
 
-  return existingCodes
+  return existingCodes;
 }
 
 /**
@@ -275,7 +270,7 @@ function retrieveAllCodes () {
  * @param {HTMLSelectElement} selectList The HTML select element representing the dropdown.
  * @returns {void}
  */
-function fillBadgeList (badges, selectList) {
+function fillBadgeList(badges, selectList) {
   // fill select list with new badges
   for (let i = 0; i < badges.length; i++) {
     // new option for list (empty)
@@ -293,7 +288,7 @@ function fillBadgeList (badges, selectList) {
  * @param {HTMLSelectElement} badgeList The HTML select element representign the dropdown menu.
  * @returns {void}
  */
-function clearBadgeList (badgeList) {
+function clearBadgeList(badgeList) {
   const len = badgeList.options.length - 1;
   // loop through drop down list and clear it
   for (let i = len; i >= 0; i--) {
@@ -305,7 +300,7 @@ function clearBadgeList (badgeList) {
  * Updates the badge list in the dropdown menu.
  * @returns {void}
  */
-function updateBadgeList () {
+function updateBadgeList() {
   // read badges from memory
   const badges = retrieveAllCodes();
   // dropdown menu from HTML
@@ -314,14 +309,13 @@ function updateBadgeList () {
   clearBadgeList(badgeList);
   // refill with updated data
   fillBadgeList(badges, badgeList);
-  console.log(badges);
 }
 
 /**
  * Fills the text box with the selection from the dropdown list.
  * @returns {void}
  */
-function selectionToTextBox () {
+function selectionToTextBox() {
   // HTML text box and drop down list
   const selectBox = document.getElementById('badges_list');
   const textBox = document.getElementById('text_box');
