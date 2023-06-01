@@ -85,11 +85,6 @@ let cloner_scan_command_characteristic;
  */
 let cloner_turn_off_characteristic;
 
-/**
- * The data received from the cloner device and sent to the web application.
- * @type {DataView}
- */
-let cloner_to_web_data;
 
 
 
