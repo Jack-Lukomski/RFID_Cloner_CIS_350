@@ -1,30 +1,100 @@
 /**
- * RFID Cloner project
+ * @fileoverview This file contains JavaScript code for interacting with a cloner device via Bluetooth.
  * 
- * Website controls and stores data from the cloner
- * 
- * 
+ * It includes functions for connecting to the cloner, sending and receiving data, setting up notifications,
+ * and controlling the cloner device. It also provides utility functions for storing and retrieving RFID codes
+ * in local storage and updating the user interface.
+ * @author DanGeorge & NathanStrandberg
  */
 
-//GLOBAL VARIABLES: simplifies using functions with HTML
+/**
+ * The cloner device object obtained from the Bluetooth connection.
+ * @type {BluetoothDevice}
+ */
 let cloner;
+
+/**
+ * The GATT server object representing the connection to the cloner peripheral.
+ * @type {BluetoothRemoteGATTServer}
+ */
 let server;
+
+/**
+ * The main service object for the cloner device.
+ * @type {BluetoothRemoteGATTService}
+ */
 let service;
 
+/**
+ * The ID for writing badge data to the cloner.
+ * @type {number}
+ */
 let write_badge_to_cloner_ID = 0x0001;
+
+/**
+ * The ID for receiving badge data from the cloner.
+ * @type {number}
+ */
 let receive_badge_from_cloner_ID = 0x0002;
+
+/**
+ * The ID for the command to scan a badge on the cloner.
+ * @type {number}
+ */
 let scan_badge_command = 0x0003;
+
+/**
+ * The ID for the command to turn off the cloner device.
+ * @type {number}
+ */
 let turn_off_device_command = 0x0004;
-//encoder and decoder for converting byte data into strings
-decoder = new TextDecoder();
-encoder = new TextEncoder();
-//characteristics for accessing remote cloner and transferring data
+
+/**
+ * The decoder object used to convert byte data into strings.
+ * @type {TextDecoder}
+ */
+let decoder = new TextDecoder();
+
+/**
+ * The encoder object used to convert strings into byte data.
+ * @type {TextEncoder}
+ */
+let encoder = new TextEncoder();
+
+/**
+ * The characteristic for transmitting data from the cloner to the web application.
+ * @type {BluetoothRemoteGATTCharacteristic}
+ */
 let cloner_transmit_characteristic;
+
+/**
+ * The characteristic for receiving data from the web application to the cloner.
+ * @type {BluetoothRemoteGATTCharacteristic}
+ */
 let cloner_receive_characteristic;
+
+/**
+ * The characteristic for sending the command to scan a badge on the cloner.
+ * @type {BluetoothRemoteGATTCharacteristic}
+ */
 let cloner_scan_command_characteristic;
+
+/**
+ * The characteristic for sending the command to turn off the cloner device.
+ * @type {BluetoothRemoteGATTCharacteristic}
+ */
 let cloner_turn_off_characteristic;
-//variables for sending and receiving data
+
+/**
+ * The data received from the cloner device and sent to the web application.
+ * @type {DataView}
+ */
 let cloner_to_web_data;
+
+/**
+ * The data received from the web application and sent to the cloner device.
+ * @type {DataView}
+ */
 let web_to_cloner_data;
 
 
@@ -33,7 +103,10 @@ let web_to_cloner_data;
 
 
 
-//gets cloner connected to website and gets all characteristics
+/**
+ * Connects to the cloner device via Bluetooth.
+ * @returns {Promise<void>} A promise that resolves when the connection is established.
+ */
 async function connect_to_cloner() {
     //device find
     cloner = await navigator.bluetooth.requestDevice({
@@ -65,7 +138,10 @@ async function connect_to_cloner() {
 
 
 
-//send badge number to cloner via button push
+/**
+ * Sends badge number to the cloner via button push.
+ * @returns {Promise<void>} A promise that resolves when the data is sent to the cloncer.
+ */
 async function send_data_to_cloner() {
     try {
         //let new_RFID_UID = document.getElementById("text_box").value;
@@ -84,10 +160,10 @@ async function send_data_to_cloner() {
 
 }
 
-
-
-
-//read cloners characteristic via button push
+/**
+ * Reads cloner's characterisitcs via button push.
+ * @returns {Promise<void>} A promise that resolves when the data is received from the cloner.
+ */
 async function receive_data_from_cloner() {
 
     //read cloner characteristic
@@ -104,10 +180,10 @@ async function receive_data_from_cloner() {
 
 }
 
-
-
-
-//start RFID cloner notification: this will start an event handler to autimaticaly listen for cloner data. automatically saves new data to JSON file
+/**
+ * Sets up RFID cloner notification.
+ * @returns {Promise<void>} A promise that resolves when the RFID cloner notification is set up.
+ */
 async function setup_RFID_notifications() {
 
     if (cloner_transmit_characteristic.properties.notify) {
@@ -143,10 +219,10 @@ async function setup_RFID_notifications() {
     }
 }
 
-
-
-
-//commands cloner to scan badge
+/**
+ * Sends a command to the cloner to scan a badge.
+ * @returns {Promise<void>} A promise that resolves when the command is sent to the cloner.
+ */
 async function cloner_command_scan() {
 
     try {
@@ -157,20 +233,18 @@ async function cloner_command_scan() {
     catch (error) { }
 }
 
-
-
-//function to write to the on off characteristic. turns off device 
+/**
+ * Sends a command to turn off the cloner device.
+ * @returns {Promise<void>} A promise that resolves when the command is sent to turn off the cloner.
+ */
 async function cloner_turn_off(){
     let data =  await encoder.encode("turnoffnow_");
     await cloner_turn_off_characteristic.writeValue(data);
 }
 
-
-
-
 /**
- * Function to clear JSON data from web browser
- * takes no parameters
+ * Clears JSON data from the web browser.
+ * @returns {void}
  */
 function clear_saved_data() {
     localStorage.removeItem("rfidCodes");
@@ -179,13 +253,11 @@ function clear_saved_data() {
     update_badge_list()
 }
 
-
-
-
 /**
  * Function to store an RFID code in local storage.
  * Attempts to handle errors.
  * @param {string} code - The RFID code to store.
+ * @returns {void}
  */
 function storeRFIDCode(code) {
     let existingCodes;
@@ -225,9 +297,9 @@ function storeRFIDCode(code) {
 }
 
 /**
- * Function to retrieve all stored RFID codes from local storage.
+ * Retrieves all stored RFID codes from local storage.
  * Attempts to handles errors.
- * @returns {Array} - An array of stored RFID codes
+ * @returns {Array<string>} An array of stored RFID codes
  */
 function retrieveAllCodes() {
     let existingCodes;
@@ -249,9 +321,12 @@ function retrieveAllCodes() {
 
 
 
-//drop down list functions: 
-//the drop down list takes all its info from local storage to keep them in sync. 
-
+/**
+ * Fills the badge list in the dropdown
+ * @param {Array<string>} badges An array of badge numbers.
+ * @param {HTMLSelectElement} select_list The HTML select element representing the dropdown.
+ * @returns {void}
+ */
 function fill_badge_list(badges,select_list){
     
     //fill select list with new badges
@@ -266,7 +341,11 @@ function fill_badge_list(badges,select_list){
     }
 }
 
-//helper function to clear badge list
+/**
+ * Clears the badge list in the dropdown menu.
+ * @param {HTMLSelectElement} badge_list The HTML select element representign the dropdown menu.
+ * @returns {void}
+ */
 function clear_badge_list(badge_list){
     len = badge_list.options.length-1;
     //loop through drop down list and clear it
@@ -275,7 +354,10 @@ function clear_badge_list(badge_list){
     }
 }
 
-//driver function to fill badge list
+/**
+ * Updates the badge list in the dropdown menu.
+ * @returns {void}
+ */
 function update_badge_list(){
     //read badges from memory
     let badges = retrieveAllCodes();
@@ -289,7 +371,10 @@ function update_badge_list(){
 }
 
 
-//function to fill text box with selection from drop down list
+/**
+ * Fills the text box with the selection from the dropdown list.
+ * @returns {void}
+ */
 function selection_to_text_box(){
     //HTML text box and drop down list
     let select_box = document.getElementById("badges_list");
