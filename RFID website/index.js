@@ -154,25 +154,7 @@ async function send_data_to_cloner() {
 
 }
 
-/**
- * Reads cloner's characterisitcs via button push.
- * @returns {Promise<void>} A promise that resolves when the data is received from the cloner.
- */
-async function receive_data_from_cloner() {
 
-    //read cloner characteristic
-    cloner_to_web_data = await cloner_transmit_characteristic.readValue();
-
-    let val = decoder.decode(cloner_to_web_data);
-    console.log(val);
-    //store new badge to local storage
-    storeRFIDCode(val);
-    
-
-    console.log(localStorage.getItem('rfidCodes'));//test to see if storage works
-    //localStorage.removeItem('rfidCodes');//test only!
-
-}
 
 /**
  * Sets up RFID cloner notification.
