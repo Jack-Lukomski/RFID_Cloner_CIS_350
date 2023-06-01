@@ -1,3 +1,4 @@
+/*eslint linebreak-style: ["error", "unix"]*/
 /**
  * @fileoverview This file contains JavaScript code for 
  * interacting with a cloner device via Bluetooth.
@@ -9,7 +10,6 @@
  * in local storage and updating the user interface.
  * @author DanGeorge & NathanStrandberg
  */
-/*eslint linebreak-style: ["error", "unix"]*/
 /**
  * The cloner device object obtained from the Bluetooth connection.
  * @type {BluetoothDevice}
@@ -98,7 +98,7 @@ async function connectToCloner() {
   // device find
   cloner = await navigator.bluetooth.requestDevice({
     acceptAllDevices: true,
-    optionalServices: ['battery_service']
+    optionalServices: ['battery_service'];
   });
 
   // connect to cloner peripheral
@@ -109,7 +109,8 @@ async function connectToCloner() {
   // get GATT service
   service = await server.getPrimaryService('battery_service');
 
-  // get characteristics from cloner. these characteristics will link to buttons in website. they will each serve as different command for device
+  // get characteristics from cloner. these characteristics will link to 
+  // buttons in website. they will each serve as different command for device
   console.log('Getting characteristics');
   clonerTransmitCharacteristic = await service.getCharacteristic(receiveBadgeFromClonerID);
   clonerReceiveCharacteristic = await service.getCharacteristic(writeBadgeToClonerID);
@@ -180,7 +181,7 @@ async function setupRFIDnotifications() {
  */
 async function clonerCommandScan() {
   try {
-    // Cloner waits for data to arrive on this characteristic. 
+    // Cloner waits for data to arrive on this characteristic.
     // Doesnt matter what the data is, just that it arrives.
     const data = encoder.encode('***********');
     await clonerScanCommandCharacteristic.writeValue(data);
@@ -204,8 +205,8 @@ async function clonerTurnOff() {
  */
 function clearSavedData() {
   localStorage.removeItem('rfidCodes');
-  // clear drop down list 
-  updateBadgeList()
+  // clear drop down list
+  updateBadgeList();
 }
 
 /**
@@ -219,7 +220,7 @@ function storeRFIDCode(code) {
 
   // retreive badge numbers from storage and put into array
   try {
-    existingCodes = localStorage.getItem('rfidCodes')
+    existingCodes = localStorage.getItem('rfidCodes');
     existingCodes = existingCodes ? JSON.parse(existingCodes) : [];
   } catch (error) {
     existingCodes = [];
@@ -254,7 +255,7 @@ function retrieveAllCodes() {
       existingCodes = localStorage.getItem('rfidCodes');
       existingCodes = existingCodes ? JSON.parse(existingCodes) : [];
     } else {
-      existingCodes = []
+      existingCodes = [];
     }
   } catch (error) {
     existingCodes = [];
@@ -272,9 +273,9 @@ function retrieveAllCodes() {
  */
 function fillBadgeList(badges, selectList) {
   // fill select list with new badges
-  for (let i = 0; i < badges.length; i++) {
+  for (let i = 0; i < badges.length; i += 1) {
     // new option for list (empty)
-    const newOption = document.createElement("option");
+    const newOption = document.createElement('option');
     // fill option with data
     newOption.textContent = badges[i];
     newOption.value = badges[i];
@@ -291,7 +292,7 @@ function fillBadgeList(badges, selectList) {
 function clearBadgeList(badgeList) {
   const len = badgeList.options.length - 1;
   // loop through drop down list and clear it
-  for (let i = len; i >= 0; i--) {
+  for (let i = len; i >= 0; i -= 1) {
     badgeList.remove(i);
   }
 }
