@@ -46,12 +46,6 @@ const receiveBadgeFromClonerID = 0x0002;
 const scanBadgeCommand = 0x0003;
 
 /**
- * The ID for the command to turn off the cloner device.
- * @type {number}
- */
-const turnOffDeviceCommand = 0x0004;
-
-/**
  * The decoder object used to convert byte data into strings.
  * @type {TextDecoder}
  */
@@ -80,12 +74,6 @@ let clonerReceiveCharacteristic;
  * @type {BluetoothRemoteGATTCharacteristic}
  */
 let clonerScanCommandCharacteristic;
-
-/**
- * The characteristic for sending the command to turn off the cloner device.
- * @type {BluetoothRemoteGATTCharacteristic}
- */
-let clonerTurnOffCharacteristic;
 
 // FUNCTIONS
 
@@ -273,7 +261,6 @@ async function connectToCloner() {
   clonerTransmitCharacteristic = await service.getCharacteristic(receiveBadgeFromClonerID);
   clonerReceiveCharacteristic = await service.getCharacteristic(writeBadgeToClonerID);
   clonerScanCommandCharacteristic = await service.getCharacteristic(scanBadgeCommand);
-  clonerTurnOffCharacteristic = await service.getCharacteristic(turnOffDeviceCommand);
   // publish device name to website
   document.getElementById('bluetooth_device_name').innerHTML = cloner.name;
   // start notification services for cloner
@@ -313,13 +300,4 @@ async function clonerCommandScan() {
   } catch (error) {
     console.log('cloner command scan characteristic unreachable.');
   }
-}
-
-/**
- * Sends a command to turn off the cloner device.
- * @returns {Promise<void>} A promise that resolves when the command is sent to turn off the cloner.
- */
-async function clonerTurnOff() {
-  const data = await encoder.encode('***********');
-  await clonerTurnOffCharacteristic.writeValue(data);
 }
