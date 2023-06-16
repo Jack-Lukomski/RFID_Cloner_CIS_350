@@ -37,13 +37,13 @@ const writeBadgeToClonerID = 0x0001;
  * The ID for receiving badge data from the cloner.
  * @type {number}
  */
-const receiveBadgeFromClonerID = 0x0002;
+const receiveBadgeFromClonerID = 0x0005;
 
 /**
  * The ID for the command to scan a badge on the cloner.
  * @type {number}
  */
-const scanBadgeCommand = 0x0003;
+const scanBadgeCommand = 0x0002;
 
 /**
  * The decoder object used to convert byte data into strings.
@@ -296,7 +296,8 @@ async function clonerCommandScan() {
     // Cloner waits for data to arrive on this characteristic.
     // Doesnt matter what the data is, just that it arrives.
     const data = encoder.encode('***********');
-    await clonerScanCommandCharacteristic.writeValue(data);
+    //await clonerScanCommandCharacteristic.writeValue(data);
+    console.log(clonerScanCommandCharacteristic.readValue());
   } catch (error) {
     console.log('cloner command scan characteristic unreachable.');
   }
