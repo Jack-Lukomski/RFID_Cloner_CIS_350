@@ -31,19 +31,22 @@ let service;
  * The ID for writing badge data to the cloner.
  * @type {number}
  */
-const writeBadgeToClonerID = 0x0001;
+const writeBadgeToClonerIDFirstHalf = 0x0005;
+const writeBadgeToClonerIDSecondHalf = 0x0006;
 
 /**
  * The ID for receiving badge data from the cloner.
  * @type {number}
  */
-const receiveBadgeFromClonerID = 0x0005;
+
+const receiveBadgeFromClonerIDFirstHalf = 0x0003;
+const receiveBadgeFromClonerIDSecondHalf = 0x0004;
 
 /**
  * The ID for the command to scan a badge on the cloner.
  * @type {number}
  */
-const scanBadgeCommand = 0x0002;
+const scanBadgeCommand = 0x0007;
 
 /**
  * The decoder object used to convert byte data into strings.
@@ -61,19 +64,23 @@ const encoder = new TextEncoder();
  * The characteristic for transmitting data from the cloner to the web application.
  * @type {BluetoothRemoteGATTCharacteristic}
  */
-let clonerTransmitCharacteristic;
+let clonerTransmitCharacteristicFirstHalf;
+let clonerTransmitCharacteristicSecondHalf;
 
 /**
  * The characteristic for receiving data from the web application to the cloner.
  * @type {BluetoothRemoteGATTCharacteristic}
  */
-let clonerReceiveCharacteristic;
+let clonerReceiveCharacteristicFirstHalf;
+let clonerReceiveCharacteristicSecondHalf;
 
 /**
  * The characteristic for sending the command to scan a badge on the cloner.
  * @type {BluetoothRemoteGATTCharacteristic}
  */
 let clonerScanCommandCharacteristic;
+
+//******* */
 
 // FUNCTIONS
 
@@ -208,32 +215,37 @@ function selectionToTextBox() {
  * @returns {Promise<void>} A promise that resolves when the RFID cloner notification is set up.
  */
 async function setupRFIDnotifications() {
-  if (clonerTransmitCharacteristic.properties.notify) {
-    // get updated characteristic if notification received
-    try {
-      await clonerTransmitCharacteristic.startNotifications();
-    } catch (error) {
-      console.log('notifications not started!');
-    }
+  // if (clonerTransmitCharacteristicFirstHalf.properties.notify) {
+  //   // get updated characteristic if notification received
+  //   try {
+  //     await clonerTransmitCharacteristicFirstHalf.startNotifications();
+  //   } catch (error) {
+  //     console.log('notifications not started!');
+  //   }
 
-    // add event listener to characteristic, then if notification change val
-    clonerTransmitCharacteristic.addEventListener(
-      'characteristicvaluechanged',
+  //   // add event listener to characteristic, then if notification change val
+  //   clonerTransmitCharacteristicFirstHalf.addEventListener(
+  //     'characteristicvaluechanged',
 
-      // aero function event listener activates when notification arrives
-      async (eventHandler) => {
-        try {
-          let val = eventHandler.target.value;
-          val = decoder.decode(val);
-          document.getElementById('RFID_Badge_number').innerHTML = val;
-          // store UID to JSON data
-          storeRFIDCode(val);
-        } catch (DOMException) {
-          console.log('notification failure.');
-        }
-      },
-    );
-  }
+  //     // aero function event listener activates when notification arrives
+  //     async (eventHandler) => {
+  //       try {
+  //         //**************** */ Two part data 512 bytes here
+  //         //first half of data
+  //         let firstHalfData = [];
+  //         let secondHalfData = [];
+  //         //*************** */
+  //         let val = eventHandler.target.value;
+  //         val = decoder.decode(val);
+  //         document.getElementById('RFID_Badge_number').innerHTML = val;
+  //         // store UID to JSON data
+  //         storeRFIDCode(val);
+  //       } catch (DOMException) {
+  //         console.log('notification failure.');
+  //       }
+  //     },
+  //   );
+  // }
 }
 
 /**
@@ -258,8 +270,10 @@ async function connectToCloner() {
   // get characteristics from cloner. these characteristics will link to
   // buttons in website. they will each serve as different command for device
   console.log('Getting characteristics');
-  clonerTransmitCharacteristic = await service.getCharacteristic(receiveBadgeFromClonerID);
-  clonerReceiveCharacteristic = await service.getCharacteristic(writeBadgeToClonerID);
+  clonerTransmitCharacteristicFirstHalf = await service.getCharacteristic(receiveBadgeFromClonerIDFirstHalf); 
+  clonerTransmitCharacteristicSecondHalf = await service.getCharacteristic(receiveBadgeFromClonerIDSecondHalf);//Changed Here!
+  clonerReceiveCharacteristicFirstHalf = await service.getCharacteristic(writeBadgeToClonerIDFirstHalf);
+  clonerReceiveCharacteristicSecondHalf = await service.getCharacteristic(writeBadgeToClonerIDSecondHalf);
   clonerScanCommandCharacteristic = await service.getCharacteristic(scanBadgeCommand);
   // publish device name to website
   document.getElementById('bluetooth_device_name').innerHTML = cloner.name;
@@ -280,8 +294,23 @@ async function sendDataToCloner() {
     storeRFIDCode(val);
 
     // convert to byte array
-    const byteBuff = await encoder.encode(val);
-    await clonerReceiveCharacteristic.writeValue(byteBuff);
+    let testData = [1,2,3,4,5,6,7,8,9,10];
+    
+    let sendBuff = new ArrayBuffer(10,8);//create array buffer 10 bytes long, each byte max 8 bits size
+    let sendBuffDataView = new DataView(sendBuff);//dataview to access and fill array buffer 
+    let sendBuffIntView = new Uint8Array(sendBuff);//uint 8 array to pull out send buffer integers for viewing
+
+    //fill ArrayBuffer with test data
+    for(let i = 0;i<10;i++){
+      sendBuffDataView.setInt8(i,testData[i])//fill array buffer's internal Uint8 array with test data
+    }
+    //attempt to send data to cloner
+    await clonerReceiveCharacteristicFirstHalf.writeValue(sendBuff);
+    await clonerReceiveCharacteristicSecondHalf.writeValue(sendBuff);
+    //await clonerReceiveCharacteristicFirstHalf.writeValueWithoutResponse(1);//what the heck why not try?
+    console.log(sendBuffIntView);//check if data written
+   
+
   } catch (error) {
     console.log(error.message);
   }
@@ -293,12 +322,47 @@ async function sendDataToCloner() {
  */
 async function clonerCommandScan() {
   try {
-    // Cloner waits for data to arrive on this characteristic.
+    // Cloner waits for data to arrive on this characteristic. 
     // Doesnt matter what the data is, just that it arrives.
     const data = encoder.encode('***********');
-    //await clonerScanCommandCharacteristic.writeValue(data);
-    console.log(clonerScanCommandCharacteristic.readValue());
+    await clonerScanCommandCharacteristic.writeValue(data);
   } catch (error) {
-    console.log('cloner command scan characteristic unreachable.');
+    console.log('cloner command scan characteristic unreachable. ' + error);
   }
 }
+
+
+//function to read apon button click
+async function readClonerData(){
+  try {
+    //Read in first half characteristic
+    //ISSUE: whenever line 345 and 346 exicute the raw byte data is saved into the local storage, resulting in jibberish:FIXED line 240. need to update notification function there
+    let data1 = await clonerTransmitCharacteristicFirstHalf.readValue();//read first half of data
+    let data2 = await clonerTransmitCharacteristicSecondHalf.readValue();//read first half of data
+    //create view to extract data from Dataview
+    let view1 = new Uint8Array(data1.buffer);
+    let view2 = new Uint8Array(data2.buffer);
+    //build basic arrays from Uint8 array. this is becouse we cant concat them.
+    let array1 = Array.from(view1);
+    let array2 = Array.from(view2);
+    let array3 = array1.concat(array2);
+    
+
+    console.log("RAW DATA:");
+    console.log(array3);
+       
+    //convert integer array to string for viewing in website
+    val = array3.toString();
+    storeRFIDCode(val);
+    document.getElementById('RFID_Badge_number').innerHTML = val;
+  } catch (error) {
+    console.log('cloner command scan characteristic unreachable. ' + error);
+  }
+}
+
+
+
+// //Jest export functions for testing
+// module.exports = {clonerCommandScan, sendDataToCloner, connectToCloner, setupRFIDnotifications, selectionToTextBox, clearSavedData,
+//   storeRFIDCode, updateBadgeList, clearBadgeList, fillBadgeList, retrieveAllCodes, 
+// };
