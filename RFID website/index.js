@@ -65,12 +65,14 @@ const encoder = new TextEncoder();
  * @type {BluetoothRemoteGATTCharacteristic}
  */
 let clonerTransmitCharacteristicFirstHalf;
+let clonerTransmitCharacteristicSecondHalf;
 
 /**
  * The characteristic for receiving data from the web application to the cloner.
  * @type {BluetoothRemoteGATTCharacteristic}
  */
 let clonerReceiveCharacteristicFirstHalf;
+let clonerReceiveCharacteristicSecondHalf;
 
 /**
  * The characteristic for sending the command to scan a badge on the cloner.
@@ -292,8 +294,23 @@ async function sendDataToCloner() {
     storeRFIDCode(val);
 
     // convert to byte array
-    const byteBuff = await encoder.encode(val);
-    await clonerReceiveCharacteristicFirstHalf.writeValue(byteBuff);
+    let testData = [1,2,3,4,5,6,7,8,9,10];
+    
+    let sendBuff = new ArrayBuffer(10,8);//create array buffer 10 bytes long, each byte max 8 bits size
+    let sendBuffDataView = new DataView(sendBuff);//dataview to access and fill array buffer 
+    let sendBuffIntView = new Uint8Array(sendBuff);//uint 8 array to pull out send buffer integers for viewing
+
+    //fill ArrayBuffer with test data
+    for(let i = 0;i<10;i++){
+      sendBuffDataView.setInt8(i,testData[i])//fill array buffer's internal Uint8 array with test data
+    }
+    //attempt to send data to cloner
+    await clonerReceiveCharacteristicFirstHalf.writeValue(sendBuff);
+    await clonerReceiveCharacteristicSecondHalf.writeValue(sendBuff);
+    //await clonerReceiveCharacteristicFirstHalf.writeValueWithoutResponse(1);//what the heck why not try?
+    console.log(sendBuffIntView);//check if data written
+   
+
   } catch (error) {
     console.log(error.message);
   }
