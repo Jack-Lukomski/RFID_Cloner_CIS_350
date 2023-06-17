@@ -31,19 +31,21 @@ let service;
  * The ID for writing badge data to the cloner.
  * @type {number}
  */
-const writeBadgeToClonerID = 0x0001;
+const writeBadgeToClonerID = 0x0005;
 
 /**
  * The ID for receiving badge data from the cloner.
  * @type {number}
  */
-const receiveBadgeFromClonerID = 0x0005;
+
+const receiveBadgeFromClonerIDFirstHalf = 0x0003;
+const receiveBadgeFromClonerIDSecondHalf = 0x0004;
 
 /**
  * The ID for the command to scan a badge on the cloner.
  * @type {number}
  */
-const scanBadgeCommand = 0x0002;
+const scanBadgeCommand = 0x0007;
 
 /**
  * The decoder object used to convert byte data into strings.
@@ -61,7 +63,7 @@ const encoder = new TextEncoder();
  * The characteristic for transmitting data from the cloner to the web application.
  * @type {BluetoothRemoteGATTCharacteristic}
  */
-let clonerTransmitCharacteristic;
+let clonerTransmitCharacteristicFirstHalf;
 
 /**
  * The characteristic for receiving data from the web application to the cloner.
@@ -74,6 +76,8 @@ let clonerReceiveCharacteristic;
  * @type {BluetoothRemoteGATTCharacteristic}
  */
 let clonerScanCommandCharacteristic;
+
+//******* */
 
 // FUNCTIONS
 
@@ -208,21 +212,26 @@ function selectionToTextBox() {
  * @returns {Promise<void>} A promise that resolves when the RFID cloner notification is set up.
  */
 async function setupRFIDnotifications() {
-  if (clonerTransmitCharacteristic.properties.notify) {
+  if (clonerTransmitCharacteristicFirstHalf.properties.notify) {
     // get updated characteristic if notification received
     try {
-      await clonerTransmitCharacteristic.startNotifications();
+      await clonerTransmitCharacteristicFirstHalf.startNotifications();
     } catch (error) {
       console.log('notifications not started!');
     }
 
     // add event listener to characteristic, then if notification change val
-    clonerTransmitCharacteristic.addEventListener(
+    clonerTransmitCharacteristicFirstHalf.addEventListener(
       'characteristicvaluechanged',
 
       // aero function event listener activates when notification arrives
       async (eventHandler) => {
         try {
+          //**************** */ Two part data 512 bytes here
+          //first half of data
+          let firstHalfData = [];
+          let secondHalfData = [];
+          //*************** */
           let val = eventHandler.target.value;
           val = decoder.decode(val);
           document.getElementById('RFID_Badge_number').innerHTML = val;
@@ -253,12 +262,13 @@ async function connectToCloner() {
   // get cloner service
   console.log('Getting main service...');
   // get GATT service
-  service = await server.getPrimaryService('battery_service');
+  service = await server.getPrimaryService(0x2AE0);
 
   // get characteristics from cloner. these characteristics will link to
   // buttons in website. they will each serve as different command for device
   console.log('Getting characteristics');
-  clonerTransmitCharacteristic = await service.getCharacteristic(receiveBadgeFromClonerID);
+  clonerTransmitCharacteristicFirstHalf = await service.getCharacteristic(receiveBadgeFromClonerIDFirstHalf); 
+  clonerTransmitCharacteristicSecondHalf = await service.getCharacteristic(receiveBadgeFromClonerIDSecondHalf);//Changed Here!
   clonerReceiveCharacteristic = await service.getCharacteristic(writeBadgeToClonerID);
   clonerScanCommandCharacteristic = await service.getCharacteristic(scanBadgeCommand);
   // publish device name to website
@@ -293,12 +303,25 @@ async function sendDataToCloner() {
  */
 async function clonerCommandScan() {
   try {
-    // Cloner waits for data to arrive on this characteristic.
-    // Doesnt matter what the data is, just that it arrives.
-    const data = encoder.encode('***********');
-    //await clonerScanCommandCharacteristic.writeValue(data);
-    console.log(clonerScanCommandCharacteristic.readValue());
+    // // Cloner waits for data to arrive on this characteristic. 
+    // // Doesnt matter what the data is, just that it arrives.
+    // const data = encoder.encode('***********'); >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    // await clonerScanCommandCharacteristic.writeValue(data);
+    let data = clonerTransmitCharacteristicFirstHalf.readValue();//read first half of data
+    data.concat(clonerTransmitCharacteristicSecondHalf.readValue());//add second half of data
+    val = decoder.decode(data);
+          document.getElementById('RFID_Badge_number').innerHTML = val;
   } catch (error) {
     console.log('cloner command scan characteristic unreachable.');
   }
 }
+
+
+
+// //Jest export functions for testing
+// module.exports = {clonerCommandScan, sendDataToCloner, connectToCloner, setupRFIDnotifications, selectionToTextBox, clearSavedData,
+//   storeRFIDCode, updateBadgeList, clearBadgeList, fillBadgeList, retrieveAllCodes, 
+// };
+
+
+
