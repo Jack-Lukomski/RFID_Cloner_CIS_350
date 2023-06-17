@@ -262,7 +262,7 @@ async function connectToCloner() {
   // get cloner service
   console.log('Getting main service...');
   // get GATT service
-  service = await server.getPrimaryService(0x2AE0);
+  service = await server.getPrimaryService('battery_service');
 
   // get characteristics from cloner. these characteristics will link to
   // buttons in website. they will each serve as different command for device
@@ -307,12 +307,53 @@ async function clonerCommandScan() {
     // // Doesnt matter what the data is, just that it arrives.
     // const data = encoder.encode('***********'); >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     // await clonerScanCommandCharacteristic.writeValue(data);
-    let data = clonerTransmitCharacteristicFirstHalf.readValue();//read first half of data
-    data.concat(clonerTransmitCharacteristicSecondHalf.readValue());//add second half of data
-    val = decoder.decode(data);
+    
+    //Read in first half characteristic
+    let data = await clonerTransmitCharacteristicFirstHalf.readValue();//read first half of data
+    data = decoder.decode(data);//Dans awsome fix
+    const hexVals1 = Array.from(data, char => '0x' + char.charCodeAt(0).toString(16));
+    console.log(hexVals1);
+
+    //Read in second half characteristic
+    data = await clonerTransmitCharacteristicSecondHalf.readValue();//read first half of data
+    data = decoder.decode(data);//Dans awsome fix
+    const hexVals2 = Array.from(data, char => '0x' + char.charCodeAt(0).toString(16));
+    console.log(hexVals2);
+
+    val = hexVals1.concat(hexVals2);
+
           document.getElementById('RFID_Badge_number').innerHTML = val;
   } catch (error) {
-    console.log('cloner command scan characteristic unreachable.');
+    console.log('cloner command scan characteristic unreachable. ' + error);
+  }
+}
+
+
+//function to read apon button click
+async function readClonerData(){
+  try {
+    // // Cloner waits for data to arrive on this characteristic. 
+    // // Doesnt matter what the data is, just that it arrives.
+    // const data = encoder.encode('***********'); >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    // await clonerScanCommandCharacteristic.writeValue(data);
+    
+    //Read in first half characteristic
+    let data = await clonerTransmitCharacteristicFirstHalf.readValue();//read first half of data
+    data = decoder.decode(data);//Dans awsome fix
+    const hexVals1 = Array.from(data, char => '0x' + char.charCodeAt(0).toString(16));
+    console.log(hexVals1);
+
+    //Read in second half characteristic
+    data = await clonerTransmitCharacteristicSecondHalf.readValue();//read first half of data
+    data = decoder.decode(data);//Dans awsome fix
+    const hexVals2 = Array.from(data, char => '0x' + char.charCodeAt(0).toString(16));
+    console.log(hexVals2);
+
+    val = hexVals1.concat(hexVals2);
+
+          document.getElementById('RFID_Badge_number').innerHTML = val;
+  } catch (error) {
+    console.log('cloner command scan characteristic unreachable. ' + error);
   }
 }
 
@@ -322,6 +363,3 @@ async function clonerCommandScan() {
 // module.exports = {clonerCommandScan, sendDataToCloner, connectToCloner, setupRFIDnotifications, selectionToTextBox, clearSavedData,
 //   storeRFIDCode, updateBadgeList, clearBadgeList, fillBadgeList, retrieveAllCodes, 
 // };
-
-
-
