@@ -1,32 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <title>JSDoc: Source: index.js</title>
-
-    <script src="scripts/prettify/prettify.js"> </script>
-    <script src="scripts/prettify/lang-css.js"> </script>
-    <!--[if lt IE 9]>
-      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
-    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
-</head>
-
-<body>
-
-<div id="main">
-
-    <h1 class="page-title">Source: index.js</h1>
-
-    
-
-
-
-    
-    <section>
-        <article>
-            <pre class="prettyprint source linenums"><code>/**
+/**
  * @fileoverview This file contains JavaScript code for
  * interacting with a cloner device via Bluetooth.
  *
@@ -35,7 +7,7 @@
  * and controlling the cloner device. It also provides utility
  * functions for storing and retrieving RFID codes
  * in local storage and updating the user interface.
- * @author DanGeorge &amp; NathanStrandberg
+ * @author DanGeorge & NathanStrandberg
  */
 /**
  * The cloner device object obtained from the Bluetooth connection.
@@ -65,19 +37,13 @@ const writeBadgeToClonerID = 0x0001;
  * The ID for receiving badge data from the cloner.
  * @type {number}
  */
-const receiveBadgeFromClonerID = 0x0002;
+const receiveBadgeFromClonerID = 0x0005;
 
 /**
  * The ID for the command to scan a badge on the cloner.
  * @type {number}
  */
-const scanBadgeCommand = 0x0003;
-
-/**
- * The ID for the command to turn off the cloner device.
- * @type {number}
- */
-const turnOffDeviceCommand = 0x0004;
+const scanBadgeCommand = 0x0002;
 
 /**
  * The decoder object used to convert byte data into strings.
@@ -109,18 +75,12 @@ let clonerReceiveCharacteristic;
  */
 let clonerScanCommandCharacteristic;
 
-/**
- * The characteristic for sending the command to turn off the cloner device.
- * @type {BluetoothRemoteGATTCharacteristic}
- */
-let clonerTurnOffCharacteristic;
-
 // FUNCTIONS
 
 /**
  * Retrieves all stored RFID codes from local storage.
  * Attempts to handles errors.
- * @returns {Array&lt;string>} An array of stored RFID codes
+ * @returns {Array<string>} An array of stored RFID codes
  */
 function retrieveAllCodes() {
   let existingCodes;
@@ -142,13 +102,13 @@ function retrieveAllCodes() {
 
 /**
  * Fills the badge list in the dropdown
- * @param {Array&lt;string>} badges An array of badge numbers.
+ * @param {Array<string>} badges An array of badge numbers.
  * @param {HTMLSelectElement} selectList The HTML select element representing the dropdown.
  * @returns {void}
  */
 function fillBadgeList(badges, selectList) {
   // fill select list with new badges
-  for (let i = 0; i &lt; badges.length; i += 1) {
+  for (let i = 0; i < badges.length; i += 1) {
     // new option for list (empty)
     const newOption = document.createElement('option');
     // fill option with data
@@ -245,7 +205,7 @@ function selectionToTextBox() {
 
 /**
  * Sets up RFID cloner notification.
- * @returns {Promise&lt;void>} A promise that resolves when the RFID cloner notification is set up.
+ * @returns {Promise<void>} A promise that resolves when the RFID cloner notification is set up.
  */
 async function setupRFIDnotifications() {
   if (clonerTransmitCharacteristic.properties.notify) {
@@ -278,7 +238,7 @@ async function setupRFIDnotifications() {
 
 /**
  * Connects to the cloner device via Bluetooth.
- * @returns {Promise&lt;void>} A promise that resolves when the connection is established.
+ * @returns {Promise<void>} A promise that resolves when the connection is established.
  */
 async function connectToCloner() {
   // device find
@@ -301,7 +261,6 @@ async function connectToCloner() {
   clonerTransmitCharacteristic = await service.getCharacteristic(receiveBadgeFromClonerID);
   clonerReceiveCharacteristic = await service.getCharacteristic(writeBadgeToClonerID);
   clonerScanCommandCharacteristic = await service.getCharacteristic(scanBadgeCommand);
-  clonerTurnOffCharacteristic = await service.getCharacteristic(turnOffDeviceCommand);
   // publish device name to website
   document.getElementById('bluetooth_device_name').innerHTML = cloner.name;
   // start notification services for cloner
@@ -311,7 +270,7 @@ async function connectToCloner() {
 
 /**
  * Sends badge number to the cloner via button push.
- * @returns {Promise&lt;void>} A promise that resolves when the data is sent to the cloncer.
+ * @returns {Promise<void>} A promise that resolves when the data is sent to the cloncer.
  */
 async function sendDataToCloner() {
   try {
@@ -330,47 +289,16 @@ async function sendDataToCloner() {
 
 /**
  * Sends a command to the cloner to scan a badge.
- * @returns {Promise&lt;void>} A promise that resolves when the command is sent to the cloner.
+ * @returns {Promise<void>} A promise that resolves when the command is sent to the cloner.
  */
 async function clonerCommandScan() {
   try {
     // Cloner waits for data to arrive on this characteristic.
     // Doesnt matter what the data is, just that it arrives.
     const data = encoder.encode('***********');
-    await clonerScanCommandCharacteristic.writeValue(data);
+    //await clonerScanCommandCharacteristic.writeValue(data);
+    console.log(clonerScanCommandCharacteristic.readValue());
   } catch (error) {
     console.log('cloner command scan characteristic unreachable.');
   }
 }
-
-/**
- * Sends a command to turn off the cloner device.
- * @returns {Promise&lt;void>} A promise that resolves when the command is sent to turn off the cloner.
- */
-async function clonerTurnOff() {
-  const data = await encoder.encode('***********');
-  await clonerTurnOffCharacteristic.writeValue(data);
-}
-</code></pre>
-        </article>
-    </section>
-
-
-
-
-</div>
-
-<nav>
-    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#clearBadgeList">clearBadgeList</a></li><li><a href="global.html#clearSavedData">clearSavedData</a></li><li><a href="global.html#cloner">cloner</a></li><li><a href="global.html#clonerCommandScan">clonerCommandScan</a></li><li><a href="global.html#clonerReceiveCharacteristic">clonerReceiveCharacteristic</a></li><li><a href="global.html#clonerScanCommandCharacteristic">clonerScanCommandCharacteristic</a></li><li><a href="global.html#clonerTransmitCharacteristic">clonerTransmitCharacteristic</a></li><li><a href="global.html#clonerTurnOff">clonerTurnOff</a></li><li><a href="global.html#clonerTurnOffCharacteristic">clonerTurnOffCharacteristic</a></li><li><a href="global.html#connectToCloner">connectToCloner</a></li><li><a href="global.html#decoder">decoder</a></li><li><a href="global.html#encoder">encoder</a></li><li><a href="global.html#fillBadgeList">fillBadgeList</a></li><li><a href="global.html#receiveBadgeFromClonerID">receiveBadgeFromClonerID</a></li><li><a href="global.html#retrieveAllCodes">retrieveAllCodes</a></li><li><a href="global.html#scanBadgeCommand">scanBadgeCommand</a></li><li><a href="global.html#selectionToTextBox">selectionToTextBox</a></li><li><a href="global.html#sendDataToCloner">sendDataToCloner</a></li><li><a href="global.html#server">server</a></li><li><a href="global.html#service">service</a></li><li><a href="global.html#setupRFIDnotifications">setupRFIDnotifications</a></li><li><a href="global.html#storeRFIDCode">storeRFIDCode</a></li><li><a href="global.html#turnOffDeviceCommand">turnOffDeviceCommand</a></li><li><a href="global.html#updateBadgeList">updateBadgeList</a></li><li><a href="global.html#writeBadgeToClonerID">writeBadgeToClonerID</a></li></ul>
-</nav>
-
-<br class="clear">
-
-<footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Thu Jun 01 2023 19:24:51 GMT-0400 (Eastern Daylight Saving Time)
-</footer>
-
-<script> prettyPrint(); </script>
-<script src="scripts/linenumber.js"> </script>
-</body>
-</html>
