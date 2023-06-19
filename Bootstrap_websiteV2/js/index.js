@@ -178,7 +178,7 @@ function updateBadgeList() {
  * @param {string} code - The RFID code to store.
  * @returns {void}
  */
-function storeRFIDCode(code) {
+async function storeRFIDCode(code) {
   // variable to store existing codes
   let existingCodes;
   // retreive badge numbers from storage and put into array
@@ -239,7 +239,6 @@ async function connectToCloner() {
     acceptAllDevices: true,
     optionalServices: ['battery_service'],
   });
-
   // connect to cloner peripheral
   console.log('Connecting to Cloner Peripheral...');
   server = await cloner.gatt.connect();
@@ -270,33 +269,21 @@ async function sendDataToCloner() {
   try {
     // get text box content
     const val = document.getElementById('text_box').value;
-    //convert string into 
-    let asciiArray = val.replaceAll(',','').replaceAll(' ','');
-    console.log(asciiArray);
-
-    let dataLen = asciiArray.len;
-    //convert array of chars into Uint8_t
-    let asciiNumArray = encoder.encode(asciiArray);
-    
-    // save custom UID to list of ID's
-    storeRFIDCode(val);
-
-    // create array buffer 10 bytes long, each byte max 8 bits size
-    let sendBuff = new ArrayBuffer(dataLen ,8);
-    // dataview to access and fill array buffer 
-    let sendBuffDataView = new DataView(sendBuff);
-    // uint 8 array to pull out send buffer integers for viewing
-    let sendBuffIntView = new Uint8Array(sendBuff);
-
-    for(let i = 0;i<dataLen; i++){
-      sendBuffDataView.setInt8(i,asciiNumArray[i]);
-    }
-    console.log(asciiNumArray);
-    
+    let dataLen = val.length;
+    let endFirstHalf = Math.ceil(dataLen/2)-1;
+    let startSecondHalf = endFirstHalf;
+    //save custom UID to list of ID's
+    await storeRFIDCode(val);
+    //split data into two pieces
+    let val1 = val.substring(0,endFirstHalf);
+    let val2 = val.substring(startSecondHalf, dataLen);
+    // convert to byte array
+    const byteBuff1 = await encoder.encode(val1);
+    const byteBuff2 = await encoder.encode(val2);    
     //attempt to send data to cloner in two pieces 512 per characteristic
-    await clonerReceiveCharacteristicFirstHalf.writeValue(sendBuff);
-    await clonerReceiveCharacteristicSecondHalf.writeValue(sendBuff);
-       
+    await clonerReceiveCharacteristicFirstHalf.writeValue(byteBuff1);
+    await clonerReceiveCharacteristicSecondHalf.writeValue(byteBuff2);
+   
   } catch (error) {
     console.log(error.message);
   }
@@ -309,7 +296,6 @@ async function sendDataToCloner() {
 async function readClonerData(){
   try {
     //Read in first half characteristic
-    //ISSUE: whenever line 345 and 346 exicute the raw byte data is saved into the local storage, resulting in jibberish:FIXED line 240. need to update notification function there
     let data1 = await clonerTransmitCharacteristicFirstHalf.readValue();//read first half of data
     let data2 = await clonerTransmitCharacteristicSecondHalf.readValue();//read first half of data
     //create view to extract data from Dataview
@@ -319,10 +305,9 @@ async function readClonerData(){
     let array1 = Array.from(view1);
     let array2 = Array.from(view2);
     let array3 = array1.concat(array2);
-       
     //convert integer array to string for viewing in website
     val = array3.toString();
-    storeRFIDCode(val);
+    await storeRFIDCode(val);
     // update website ID 
     document.getElementById('RFID_Badge_number').innerHTML = val;
   } catch (error) {
