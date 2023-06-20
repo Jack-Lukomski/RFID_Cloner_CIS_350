@@ -2,11 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Home</title>
+    <title>JSDoc: Source: index.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
-    <link href="css/styles.css" rel="stylesheet" />
     <!--[if lt IE 9]>
       <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
@@ -15,19 +14,6 @@
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-bottom">
-        <div class="container px-4 px-lg-5">
-            <a class="navbar-brand" href="#!">RFID Central</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
-            <div class="collapse navbar-collapse" id="navbarResponsive">
-                <ul class="navbar-nav ml-auto">
-                    <li class="nav-item active"><a class="nav-link" href="../../Bootstrap_websiteV2/index.html">Home</a></li>
-                    <li class="nav-item"><a class="nav-link" href="index.html">Documentation</a></li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-
 
 <div id="main">
 
@@ -73,25 +59,32 @@ let service;
  * The ID for writing badge data to the cloner.
  * @type {number}
  */
-const writeBadgeToClonerID = 0x0001;
+const writeBadgeToClonerIDFirstHalf = 0x0005;
+
+/**
+ * The ID for writing badge data to the cloner.
+ * @type {number}
+ */
+const writeBadgeToClonerIDSecondHalf = 0x0006;
 
 /**
  * The ID for receiving badge data from the cloner.
  * @type {number}
  */
-const receiveBadgeFromClonerID = 0x0002;
+
+const receiveBadgeFromClonerIDFirstHalf = 0x0003;
+
+/**
+ * The ID for receiving badge data from the cloner.
+ * @type {number}
+ */
+const receiveBadgeFromClonerIDSecondHalf = 0x0004;
 
 /**
  * The ID for the command to scan a badge on the cloner.
  * @type {number}
  */
-const scanBadgeCommand = 0x0003;
-
-/**
- * The ID for the command to turn off the cloner device.
- * @type {number}
- */
-const turnOffDeviceCommand = 0x0004;
+const scanBadgeCommand = 0x0007;
 
 /**
  * The decoder object used to convert byte data into strings.
@@ -109,25 +102,31 @@ const encoder = new TextEncoder();
  * The characteristic for transmitting data from the cloner to the web application.
  * @type {BluetoothRemoteGATTCharacteristic}
  */
-let clonerTransmitCharacteristic;
+let clonerTransmitCharacteristicFirstHalf;
+
+/**
+ * The characteristic for transmitting data from the cloner to the web application.
+ * @type {BluetoothRemoteGATTCharacteristic}
+ */
+let clonerTransmitCharacteristicSecondHalf;
 
 /**
  * The characteristic for receiving data from the web application to the cloner.
  * @type {BluetoothRemoteGATTCharacteristic}
  */
-let clonerReceiveCharacteristic;
+let clonerReceiveCharacteristicFirstHalf;
+
+/**
+ * The characteristic for receiving data from the web application to the cloner.
+ * @type {BluetoothRemoteGATTCharacteristic}
+ */
+let clonerReceiveCharacteristicSecondHalf;
 
 /**
  * The characteristic for sending the command to scan a badge on the cloner.
  * @type {BluetoothRemoteGATTCharacteristic}
  */
 let clonerScanCommandCharacteristic;
-
-/**
- * The characteristic for sending the command to turn off the cloner device.
- * @type {BluetoothRemoteGATTCharacteristic}
- */
-let clonerTurnOffCharacteristic;
 
 // FUNCTIONS
 
@@ -207,9 +206,9 @@ function updateBadgeList() {
  * @param {string} code - The RFID code to store.
  * @returns {void}
  */
-function storeRFIDCode(code) {
+async function storeRFIDCode(code) {
+  // variable to store existing codes
   let existingCodes;
-
   // retreive badge numbers from storage and put into array
   try {
     existingCodes = localStorage.getItem('rfidCodes');
@@ -255,39 +254,7 @@ function selectionToTextBox() {
   // take drop down list selection value and send to text box
   const selection = selectBox.value;
   textBox.value = selection;
-}
-
-/**
- * Sets up RFID cloner notification.
- * @returns {Promise&lt;void>} A promise that resolves when the RFID cloner notification is set up.
- */
-async function setupRFIDnotifications() {
-  if (clonerTransmitCharacteristic.properties.notify) {
-    // get updated characteristic if notification received
-    try {
-      await clonerTransmitCharacteristic.startNotifications();
-    } catch (error) {
-      console.log('notifications not started!');
-    }
-
-    // add event listener to characteristic, then if notification change val
-    clonerTransmitCharacteristic.addEventListener(
-      'characteristicvaluechanged',
-
-      // aero function event listener activates when notification arrives
-      async (eventHandler) => {
-        try {
-          let val = eventHandler.target.value;
-          val = decoder.decode(val);
-          document.getElementById('RFID_Badge_number').innerHTML = val;
-          // store UID to JSON data
-          storeRFIDCode(val);
-        } catch (DOMException) {
-          console.log('notification failure.');
-        }
-      },
-    );
-  }
+  console.log(selection);
 }
 
 /**
@@ -300,7 +267,6 @@ async function connectToCloner() {
     acceptAllDevices: true,
     optionalServices: ['battery_service'],
   });
-
   // connect to cloner peripheral
   console.log('Connecting to Cloner Peripheral...');
   server = await cloner.gatt.connect();
@@ -312,58 +278,69 @@ async function connectToCloner() {
   // get characteristics from cloner. these characteristics will link to
   // buttons in website. they will each serve as different command for device
   console.log('Getting characteristics');
-  clonerTransmitCharacteristic = await service.getCharacteristic(receiveBadgeFromClonerID);
-  clonerReceiveCharacteristic = await service.getCharacteristic(writeBadgeToClonerID);
+  clonerTransmitCharacteristicFirstHalf = await service.getCharacteristic(receiveBadgeFromClonerIDFirstHalf); 
+  clonerTransmitCharacteristicSecondHalf = await service.getCharacteristic(receiveBadgeFromClonerIDSecondHalf);//Changed Here!
+  clonerReceiveCharacteristicFirstHalf = await service.getCharacteristic(writeBadgeToClonerIDFirstHalf);
+  clonerReceiveCharacteristicSecondHalf = await service.getCharacteristic(writeBadgeToClonerIDSecondHalf);
   clonerScanCommandCharacteristic = await service.getCharacteristic(scanBadgeCommand);
-  clonerTurnOffCharacteristic = await service.getCharacteristic(turnOffDeviceCommand);
   // publish device name to website
   document.getElementById('bluetooth_device_name').innerHTML = cloner.name;
   // start notification services for cloner
-  setupRFIDnotifications();
   console.log('DONE!');
 }
 
 /**
  * Sends badge number to the cloner via button push.
- * @returns {Promise&lt;void>} A promise that resolves when the data is sent to the cloncer.
+ * @returns {Promise&lt;void>} A promise that resolves when the data is sent to the cloncer. ISSUE translates address into wrong numbers. ascii 53 = 5 for instance
  */
 async function sendDataToCloner() {
   try {
     // get text box content
     const val = document.getElementById('text_box').value;
-    // save custom UID to list of ID's
-    storeRFIDCode(val);
-
+    let dataLen = val.length;
+    let endFirstHalf = Math.ceil(dataLen/2)-1;
+    let startSecondHalf = endFirstHalf;
+    //save custom UID to list of ID's
+    await storeRFIDCode(val);
+    //split data into two pieces
+    let val1 = val.substring(0,endFirstHalf);
+    let val2 = val.substring(startSecondHalf, dataLen);
     // convert to byte array
-    const byteBuff = await encoder.encode(val);
-    await clonerReceiveCharacteristic.writeValue(byteBuff);
+    const byteBuff1 = await encoder.encode(val1);
+    const byteBuff2 = await encoder.encode(val2);    
+    //attempt to send data to cloner in two pieces 512 per characteristic
+    await clonerReceiveCharacteristicFirstHalf.writeValue(byteBuff1);
+    await clonerReceiveCharacteristicSecondHalf.writeValue(byteBuff2);
+   
   } catch (error) {
     console.log(error.message);
   }
 }
 
 /**
- * Sends a command to the cloner to scan a badge.
- * @returns {Promise&lt;void>} A promise that resolves when the command is sent to the cloner.
+ * Reads Cloner data via two characteristics on button push.
+ * @returns {Promise&lt;void>} Two promises that resolve when characteristics are read.
  */
-async function clonerCommandScan() {
+async function readClonerData(){
   try {
-    // Cloner waits for data to arrive on this characteristic.
-    // Doesnt matter what the data is, just that it arrives.
-    const data = encoder.encode('***********');
-    await clonerScanCommandCharacteristic.writeValue(data);
+    //Read in first half characteristic
+    let data1 = await clonerTransmitCharacteristicFirstHalf.readValue();//read first half of data
+    let data2 = await clonerTransmitCharacteristicSecondHalf.readValue();//read first half of data
+    //create view to extract data from Dataview
+    let view1 = new Uint8Array(data1.buffer);
+    let view2 = new Uint8Array(data2.buffer);
+    //build basic arrays from Uint8 array. this is becouse we cant concat them.
+    let array1 = Array.from(view1);
+    let array2 = Array.from(view2);
+    let array3 = array1.concat(array2);
+    //convert integer array to string for viewing in website
+    val = array3.toString();
+    await storeRFIDCode(val);
+    // update website ID 
+    document.getElementById('RFID_Badge_number').innerHTML = val;
   } catch (error) {
-    console.log('cloner command scan characteristic unreachable.');
+    console.log('cloner command scan characteristic unreachable. ' + error);
   }
-}
-
-/**
- * Sends a command to turn off the cloner device.
- * @returns {Promise&lt;void>} A promise that resolves when the command is sent to turn off the cloner.
- */
-async function clonerTurnOff() {
-  const data = await encoder.encode('***********');
-  await clonerTurnOffCharacteristic.writeValue(data);
 }
 </code></pre>
         </article>
@@ -375,13 +352,13 @@ async function clonerTurnOff() {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#clearBadgeList">clearBadgeList</a></li><li><a href="global.html#clearSavedData">clearSavedData</a></li><li><a href="global.html#cloner">cloner</a></li><li><a href="global.html#clonerCommandScan">clonerCommandScan</a></li><li><a href="global.html#clonerReceiveCharacteristic">clonerReceiveCharacteristic</a></li><li><a href="global.html#clonerScanCommandCharacteristic">clonerScanCommandCharacteristic</a></li><li><a href="global.html#clonerTransmitCharacteristic">clonerTransmitCharacteristic</a></li><li><a href="global.html#clonerTurnOff">clonerTurnOff</a></li><li><a href="global.html#clonerTurnOffCharacteristic">clonerTurnOffCharacteristic</a></li><li><a href="global.html#connectToCloner">connectToCloner</a></li><li><a href="global.html#decoder">decoder</a></li><li><a href="global.html#encoder">encoder</a></li><li><a href="global.html#fillBadgeList">fillBadgeList</a></li><li><a href="global.html#receiveBadgeFromClonerID">receiveBadgeFromClonerID</a></li><li><a href="global.html#retrieveAllCodes">retrieveAllCodes</a></li><li><a href="global.html#scanBadgeCommand">scanBadgeCommand</a></li><li><a href="global.html#selectionToTextBox">selectionToTextBox</a></li><li><a href="global.html#sendDataToCloner">sendDataToCloner</a></li><li><a href="global.html#server">server</a></li><li><a href="global.html#service">service</a></li><li><a href="global.html#setupRFIDnotifications">setupRFIDnotifications</a></li><li><a href="global.html#storeRFIDCode">storeRFIDCode</a></li><li><a href="global.html#turnOffDeviceCommand">turnOffDeviceCommand</a></li><li><a href="global.html#updateBadgeList">updateBadgeList</a></li><li><a href="global.html#writeBadgeToClonerID">writeBadgeToClonerID</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#clearBadgeList">clearBadgeList</a></li><li><a href="global.html#clearSavedData">clearSavedData</a></li><li><a href="global.html#cloner">cloner</a></li><li><a href="global.html#clonerReceiveCharacteristicFirstHalf">clonerReceiveCharacteristicFirstHalf</a></li><li><a href="global.html#clonerReceiveCharacteristicSecondHalf">clonerReceiveCharacteristicSecondHalf</a></li><li><a href="global.html#clonerScanCommandCharacteristic">clonerScanCommandCharacteristic</a></li><li><a href="global.html#clonerTransmitCharacteristicFirstHalf">clonerTransmitCharacteristicFirstHalf</a></li><li><a href="global.html#clonerTransmitCharacteristicSecondHalf">clonerTransmitCharacteristicSecondHalf</a></li><li><a href="global.html#connectToCloner">connectToCloner</a></li><li><a href="global.html#decoder">decoder</a></li><li><a href="global.html#encoder">encoder</a></li><li><a href="global.html#fillBadgeList">fillBadgeList</a></li><li><a href="global.html#readClonerData">readClonerData</a></li><li><a href="global.html#receiveBadgeFromClonerIDFirstHalf">receiveBadgeFromClonerIDFirstHalf</a></li><li><a href="global.html#receiveBadgeFromClonerIDSecondHalf">receiveBadgeFromClonerIDSecondHalf</a></li><li><a href="global.html#retrieveAllCodes">retrieveAllCodes</a></li><li><a href="global.html#scanBadgeCommand">scanBadgeCommand</a></li><li><a href="global.html#selectionToTextBox">selectionToTextBox</a></li><li><a href="global.html#sendDataToCloner">sendDataToCloner</a></li><li><a href="global.html#server">server</a></li><li><a href="global.html#service">service</a></li><li><a href="global.html#storeRFIDCode">storeRFIDCode</a></li><li><a href="global.html#updateBadgeList">updateBadgeList</a></li><li><a href="global.html#writeBadgeToClonerIDFirstHalf">writeBadgeToClonerIDFirstHalf</a></li><li><a href="global.html#writeBadgeToClonerIDSecondHalf">writeBadgeToClonerIDSecondHalf</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Thu Jun 01 2023 19:24:51 GMT-0400 (Eastern Daylight Saving Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Mon Jun 19 2023 19:13:59 GMT-0400 (Eastern Daylight Saving Time)
 </footer>
 
 <script> prettyPrint(); </script>
