@@ -294,8 +294,8 @@ async function sendDataToCloner() {
     console.log(asciiNumArray);
     
     //attempt to send data to cloner in two pieces 512 per characteristic
-    await clonerReceiveCharacteristicFirstHalf.writeValue(sendBuff);
-    await clonerReceiveCharacteristicSecondHalf.writeValue(sendBuff);
+    await clonerReceiveCharacteristicFirstHalf.writeValue(sendBuffDataView);
+    await clonerReceiveCharacteristicSecondHalf.writeValue(sendBuffDataView);
        
   } catch (error) {
     console.log(error.message);
