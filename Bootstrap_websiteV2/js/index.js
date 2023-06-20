@@ -53,18 +53,6 @@ const receiveBadgeFromClonerIDFirstHalf = 0x0003;
 const receiveBadgeFromClonerIDSecondHalf = 0x0004;
 
 /**
- * The ID for the command to scan a badge on the cloner.
- * @type {number}
- */
-const scanBadgeCommand = 0x0007;
-
-/**
- * The decoder object used to convert byte data into strings.
- * @type {TextDecoder}
- */
-const decoder = new TextDecoder();
-
-/**
  * The encoder object used to convert strings into byte data.
  * @type {TextEncoder}
  */
@@ -93,12 +81,6 @@ let clonerReceiveCharacteristicFirstHalf;
  * @type {BluetoothRemoteGATTCharacteristic}
  */
 let clonerReceiveCharacteristicSecondHalf;
-
-/**
- * The characteristic for sending the command to scan a badge on the cloner.
- * @type {BluetoothRemoteGATTCharacteristic}
- */
-let clonerScanCommandCharacteristic;
 
 // FUNCTIONS
 
@@ -226,7 +208,6 @@ function selectionToTextBox() {
   // take drop down list selection value and send to text box
   const selection = selectBox.value;
   textBox.value = selection;
-  console.log(selection);
 }
 
 /**
@@ -250,11 +231,18 @@ async function connectToCloner() {
   // get characteristics from cloner. these characteristics will link to
   // buttons in website. they will each serve as different command for device
   console.log('Getting characteristics');
-  clonerTransmitCharacteristicFirstHalf = await service.getCharacteristic(receiveBadgeFromClonerIDFirstHalf); 
-  clonerTransmitCharacteristicSecondHalf = await service.getCharacteristic(receiveBadgeFromClonerIDSecondHalf);//Changed Here!
-  clonerReceiveCharacteristicFirstHalf = await service.getCharacteristic(writeBadgeToClonerIDFirstHalf);
-  clonerReceiveCharacteristicSecondHalf = await service.getCharacteristic(writeBadgeToClonerIDSecondHalf);
-  clonerScanCommandCharacteristic = await service.getCharacteristic(scanBadgeCommand);
+  clonerTransmitCharacteristicFirstHalf = await service.getCharacteristic(
+    receiveBadgeFromClonerIDFirstHalf,
+  );
+  clonerTransmitCharacteristicSecondHalf = await service.getCharacteristic(
+    receiveBadgeFromClonerIDSecondHalf,
+  );
+  clonerReceiveCharacteristicFirstHalf = await service.getCharacteristic(
+    writeBadgeToClonerIDFirstHalf,
+  );
+  clonerReceiveCharacteristicSecondHalf = await service.getCharacteristic(
+    writeBadgeToClonerIDSecondHalf,
+  );
   // publish device name to website
   document.getElementById('bluetooth_device_name').innerHTML = cloner.name;
   // start notification services for cloner
@@ -263,27 +251,27 @@ async function connectToCloner() {
 
 /**
  * Sends badge number to the cloner via button push.
- * @returns {Promise<void>} A promise that resolves when the data is sent to the cloncer. ISSUE translates address into wrong numbers. ascii 53 = 5 for instance
+ * @returns {Promise<void>} A promise that resolves when the data is sent to the cloncer.
+ *  ISSUE translates address into wrong numbers. ascii 53 = 5 for instance
  */
 async function sendDataToCloner() {
   try {
     // get text box content
     const val = document.getElementById('text_box').value;
-    let dataLen = val.length;
-    let endFirstHalf = Math.ceil(dataLen/2)-1;
-    let startSecondHalf = endFirstHalf;
-    //save custom UID to list of ID's
+    const dataLen = val.length;
+    const endFirstHalf = Math.ceil(dataLen / 2) - 1;
+    const startSecondHalf = endFirstHalf;
+    // save custom UID to list of ID's
     await storeRFIDCode(val);
-    //split data into two pieces
-    let val1 = val.substring(0,endFirstHalf);
-    let val2 = val.substring(startSecondHalf, dataLen);
+    // split data into two pieces
+    const val1 = val.substring(0, endFirstHalf);
+    const val2 = val.substring(startSecondHalf, dataLen);
     // convert to byte array
     const byteBuff1 = await encoder.encode(val1);
-    const byteBuff2 = await encoder.encode(val2);    
-    //attempt to send data to cloner in two pieces 512 per characteristic
+    const byteBuff2 = await encoder.encode(val2);
+    // attempt to send data to cloner in two pieces 512 per characteristic
     await clonerReceiveCharacteristicFirstHalf.writeValue(byteBuff1);
     await clonerReceiveCharacteristicSecondHalf.writeValue(byteBuff2);
-   
   } catch (error) {
     console.log(error.message);
   }
@@ -293,24 +281,37 @@ async function sendDataToCloner() {
  * Reads Cloner data via two characteristics on button push.
  * @returns {Promise<void>} Two promises that resolve when characteristics are read.
  */
-async function readClonerData(){
+async function readClonerData() {
   try {
-    //Read in first half characteristic
-    let data1 = await clonerTransmitCharacteristicFirstHalf.readValue();//read first half of data
-    let data2 = await clonerTransmitCharacteristicSecondHalf.readValue();//read first half of data
-    //create view to extract data from Dataview
-    let view1 = new Uint8Array(data1.buffer);
-    let view2 = new Uint8Array(data2.buffer);
-    //build basic arrays from Uint8 array. this is becouse we cant concat them.
-    let array1 = Array.from(view1);
-    let array2 = Array.from(view2);
-    let array3 = array1.concat(array2);
-    //convert integer array to string for viewing in website
-    val = array3.toString();
+    // Read in first half characteristic
+    const data1 = await clonerTransmitCharacteristicFirstHalf.readValue();
+    const data2 = await clonerTransmitCharacteristicSecondHalf.readValue();
+    // create view to extract data from Dataview
+    const view1 = new Uint8Array(data1.buffer);
+    const view2 = new Uint8Array(data2.buffer);
+    // build basic arrays from Uint8 array. this is becouse we cant concat them.
+    const array1 = Array.from(view1);
+    const array2 = Array.from(view2);
+    const array3 = array1.concat(array2);
+    // convert integer array to string for viewing in website
+    const val = array3.toString();
     await storeRFIDCode(val);
-    // update website ID 
+    // update website ID
     document.getElementById('RFID_Badge_number').innerHTML = val;
   } catch (error) {
-    console.log('cloner command scan characteristic unreachable. ' + error);
+    console.log('cloner command scan characteristic unreachable. ');
   }
 }
+
+module.exports = {
+  readClonerData,
+  sendDataToCloner,
+  connectToCloner,
+  selectionToTextBox,
+  clearSavedData,
+  storeRFIDCode,
+  updateBadgeList,
+  clearBadgeList,
+  fillBadgeList,
+  retrieveAllCodes,
+};
